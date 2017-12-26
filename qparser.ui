@@ -17,9 +17,9 @@
    <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>50</y>
-      <width>306</width>
+      <x>40</x>
+      <y>140</y>
+      <width>541</width>
       <height>83</height>
      </rect>
     </property>
@@ -48,9 +48,6 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <widget class="QLineEdit" name="vmlinuxLineEdit"/>
-     </item>
      <item row="1" column="2">
       <widget class="QPushButton" name="vmlinuxPushButton">
        <property name="text">
@@ -75,6 +72,58 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="vmlinuxLineEdit"/>
+     </item>
+    </layout>
+   </widget>
+   <widget class="QGroupBox" name="groupBox">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>20</y>
+      <width>511</width>
+      <height>91</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>Parser Info</string>
+    </property>
+    <layout class="QGridLayout" name="gridLayout_2">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Parser Folder:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QLineEdit" name="parserfolderLineEdit"/>
+     </item>
+     <item row="0" column="2">
+      <widget class="QPushButton" name="parserfolderPushButton">
+       <property name="text">
+        <string>Open</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_5">
+       <property name="text">
+        <string>Tools(gdb/nm/objdump) Folder:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QLineEdit" name="toolsfolderLineEdit"/>
+     </item>
+     <item row="1" column="2">
+      <widget class="QPushButton" name="toolsfolderPushButton">
+       <property name="text">
+        <string>Open</string>
+       </property>
+      </widget>
+     </item>
     </layout>
    </widget>
   </widget>
@@ -92,6 +141,7 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="settingAction"/>
     <addaction name="exitAction"/>
    </widget>
    <addaction name="fileMenu"/>
@@ -99,6 +149,11 @@
   <action name="exitAction">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="settingAction">
+   <property name="text">
+    <string>Setting</string>
    </property>
   </action>
  </widget>
