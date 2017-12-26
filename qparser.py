@@ -82,10 +82,10 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.outputfolder_path = path
             self.outputfolderLineEdit.setText(path)
 
-    @pyqtSlot("QString")
-    def on_dumpfolderLineEdit_textChanged(self, arg1):
-        self.vmlinux_path = os.path.join(arg1, "vmlinux")
-        self.outputfolder_path = os.path.join(arg1, "parser")
+    @pyqtSlot(str)
+    def on_dumpfolderLineEdit_textChanged(self, arg):
+        self.vmlinux_path = os.path.join(arg, "vmlinux")
+        self.outputfolder_path = os.path.join(arg, "parser")
         self.update_ui()
 
     def closeEvent(self, *args, **kwargs):
