@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import subprocess
 import os
 import sys
 from PyQt5.QtCore import *
@@ -27,7 +28,24 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputfolder_path = settings.value("outputfolder_path") \
                                  or os.path.join(self.dumpfolder_path, "parser")
 
+        self.python_path = "C:\Python27\python.exe"
+        parser = "ramparse.py"
+        self.parser_path = os.path.join(self.parserfolder_path, parser)
+
+        self.update_tools_path()
+
+        self.hardware = "660"
+
+
         self.update_ui()
+
+    def update_tools_path(self):
+        gdb64 = "aarch64-linux-gnu-gdb.exe"
+        nm64 = "aarch64-linux-gnu-gcc-nm.exe"
+        objdump64 = "aarch64-linux-gnu-objdump.exe"
+        self.gdb64_path = os.path.join(self.toolsfolder_path, gdb64)
+        self.nm64_path = os.path.join(self.toolsfolder_path, nm64)
+        self.objdump64_path = os.path.join(self.toolsfolder_path, objdump64)
 
     def update_ui(self):
         self.parserfolderLineEdit.setText(self.parserfolder_path)
@@ -60,6 +78,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         if path:
             self.toolsfolder_path = path
             self.toolsfolderLineEdit.setText(path)
+            self.update_toolspath()
 
     @pyqtSlot()
     def on_dumpfolderPushButton_clicked(self):
@@ -88,7 +107,30 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputfolder_path = os.path.join(arg, "parser")
         self.update_ui()
 
-    def closeEvent(self, *args, **kwargs):
+    def run_parser_subprocess(self):
+        p = subprocess.run(self.cmdline)
+        while p.poll() is None:
+            line = p.stdout.readline()
+            line = line.strip()
+            if line:
+                print('Subprogram output: [{}]'.format(line))
+        if p.returncode == 0:
+            print('Subprogram success')
+        else:
+            print('Subprogram failed')
+
+    @pyqtSlot()
+    def on_parsePushButton_clicked(self):
+        options = [self.python_path, self.parser_path, "-v", self.vmlinux_path, "-g", self.gdb64_path, \
+                       "-n", self.nm64_path, "-j", self.objdump64_path, "-o", self.outputfolder_path, \
+                       "-a", self.dumpfolder_path, "--force-hardware", self.hardware, "-x"]
+        self.cmdline = " ".join(options)
+        self.outputTextEdit.setText(self.cmdline)
+
+        self.run_parser_subprocess()
+
+
+def closeEvent(self, *args, **kwargs):
         settings = QSettings()
         self.parserfolder_path = settings.setValue("parserfolder_path", self.parserfolder_path)
         self.toolsfolder_path = settings.setValue("toolsfolder_path", self.toolsfolder_path)
