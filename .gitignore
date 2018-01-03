@@ -105,3 +105,6 @@ ENV/
 
 # coredump
 core
+
+# subprocess
+ipc_logging/
