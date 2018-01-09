@@ -12,6 +12,63 @@ from PyQt5.QtWidgets import *
 from ui_qparser import Ui_MainWindow
 
 
+class PathSettings():
+    def __init__(self):
+        self.__paths = {}
+
+        if platform.system() == 'Linux':
+            self.__paths['python'] = '/usr/bin/python2'
+            self.__paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
+            self.__paths['toolsfolder'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_arm-eabi/bin'
+            self.__paths['toolsfolder64'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin'
+            prefix = 'arm-eabi-'
+            prefix64 = 'aarch64-elf-'
+            postfix = ''
+
+        if platform.system() == 'Windows':
+            self.__paths['python'] = "C:\Python27\python.exe"
+            self.__paths['parserfolder'] = "C:\\work\\tools\\linux-ramdump-parser-v2"
+            self.__paths['toolsfolder'] = "C:\\tools\\arm-none-eabi"
+            self.__paths['toolsfolder64'] = "C:\\tools\\aarch64-linux-gnu-gcc"
+            prefix = 'arm-none-eabi'
+            prefix64 = 'aarch64-linux-gnu-gcc-'
+            postfix = '.exe'
+
+        self.__paths['parser'] = os.path.join(self.__paths['parserfolder'], 'ramparse.py')
+
+        tools = ['gdb', 'nm', 'objdump']
+        for key in tools:
+            self.__paths[key] = os.path.join(self.__paths['toolsfolder'], prefix + key + postfix)
+            self.__paths[key + '64'] = os.path.join(self.__paths['toolsfolder64'], prefix64 + key + postfix)
+
+        self.__paths['dumpfolder'] = os.path.join(os.environ["HOME"], "case")
+        self.__paths['vmlinux'] = os.path.join(self.__paths['dumpfolder'], "vmlinux")
+        self.__paths['outputfolder'] = os.path.join(self.__paths['dumpfolder'], "parser")
+
+        # for k,v in self.__paths.items(): print("{}:{}".format(k, v))
+
+        self.load()
+
+    def load(self, org=None, ):
+        '''Load all stored value from system'''
+        settings = QSettings()
+        for k, v in self.__paths.items():
+            self.__paths[k] = settings.value(k) or v
+
+    def save(self):
+        '''Store all value in system'''
+        settings = QSettings()
+        for k, v in self.__paths.items():
+            settings.setValue(k, v)
+
+    def get(self, key=None):
+        return self.__paths[key]
+
+    def set(self, key=None, value=None):
+        print("{}:{}".format(key, value))
+        self.__paths[key] = value
+
+
 class QParser(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
@@ -21,67 +78,30 @@ class QParser(QMainWindow, Ui_MainWindow):
 
         self.update_ui()
 
-
     def load_settings(self):
-        if platform.system() == 'Linux':
-            self.python_path = "/usr/bin/python2"
-            parserfolder = "/opt/tools/linux-ramdump-parser-v2"
-            toolsfolder = "/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin"
+        self.paths = PathSettings()
 
-        if platform.system() == 'Windows':
-            self.python_path = "C:\Python27\python.exe"
-            parserfolder = "C:\\work\\tools\\linux-ramdump-parser-v2"
-            toolsfolder = "C:\\work\\tools"
+        self.python_path = self.paths.get('python')
 
-        settings = QSettings()
-        self.parserfolder_path = settings.value("parserfolder_path") \
-                                 or parserfolder
-        self.parser_path = os.path.join(self.parserfolder_path, "ramparse.py")
+        self.parserfolder_path = self.paths.get('parserfolder')
+        self.parser_path = self.paths.get('parser')
 
-        self.toolsfolder_path = settings.value("toolsfolder_path") \
-                                or toolsfolder
-        self.update_toolspath()
+        if self.aarch64CheckBox.isChecked():
+            self.toolsfolder_path = self.paths.get('toolsfolder64')
+            self.gdb_path = self.paths.get('gdb64')
+            self.nm_path = self.paths.get('nm64')
+            self.objdump_path = self.paths.get('objdump64')
+        else:
+            self.toolsfolder_path = self.paths.get('toolsfolder')
+            self.gdb_path = self.paths.get('gdb')
+            self.nm_path = self.paths.get('nm')
+            self.objdump_path = self.paths.get('objdump')
 
-        self.dumpfolder_path = settings.value("dumpfolder_path") \
-                               or os.path.join(os.environ["HOME"], "case")
-        self.vmlinux_path = settings.value("vmlinux_path") \
-                            or os.path.join(self.dumpfolder_path, "vmlinux")
-        self.outputfolder_path = settings.value("outputfolder_path") \
-                                 or os.path.join(self.dumpfolder_path, "parser")
+        self.dumpfolder_path = self.paths.get('dumpfolder')
+        self.vmlinux_path = self.paths.get('vmlinux')
+        self.outputfolder_path = self.paths.get('outputfolder')
+
         self.hardware = self.forcehwLineEdit.text()
-
-
-    def save_settings(self):
-        settings = QSettings()
-        self.parserfolder_path = settings.setValue("parserfolder_path", self.parserfolderLineEdit.text())
-        self.toolsfolder_path = settings.setValue("toolsfolder_path", self.toolsfolderLineEdit.text())
-        self.dumpfolder_path = settings.setValue("dumpfolder_path", self.dumpfolderLineEdit.text())
-        self.vmlinux_path = settings.setValue("vmlinux_path", self.vmlinuxLineEdit.text())
-        self.outputfolder_path = settings.setValue("outputfolder_path", self.outputfolderLineEdit.text())
-
-    def update_toolspath(self):
-        if platform.system() == 'Linux':
-            gdb64 = "aarch64-elf-gdb"
-            nm64 = "aarch64-elf-nm"
-            objdump64 = "aarch64-elf-objdump"
-            gdb = "arm-eabi-gdb"
-            nm = "arm-eabi-nm"
-            objdump = "arm-eabi-objdump"
-
-        if platform.system() == 'Windows':
-            gdb64 = "aarch64-linux-gnu-gdb.exe"
-            nm64 = "aarch64-linux-gnu-gcc-nm.exe"
-            objdump64 = "aarch64-linux-gnu-objdump.exe"
-            gdb = "arm-none-eabi-gdb.exe"
-            nm = "arm-none-eabi-nm.exe"
-            objdump = "arm-none-eabi-objdump.exe"
-
-        self.gdb64_path = os.path.join(self.toolsfolder_path, gdb64)
-        self.nm64_path = os.path.join(self.toolsfolder_path, nm64)
-        self.objdump64_path = os.path.join(self.toolsfolder_path, objdump64)
-        self.gdb_path = os.path.join(self.toolsfolder_path, gdb)
-        self.nm_path = os.path.join(self.toolsfolder_path, nm)
-        self.objdump_path = os.path.join(self.toolsfolder_path, objdump)
 
     def update_ui(self):
         self.parserfolderLineEdit.setText(self.parserfolder_path)
@@ -128,9 +148,9 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     def on_readyReadStandardError(self):
         line = str(self.process.readAllStandardError())
-        #if line.endswith('\n'):
+        # if line.endswith('\n'):
         #    print(line)
-        #else:
+        # else:
         #   print(line, end=' ')
         self.outputTextBrowser.append(line)
 
@@ -138,53 +158,69 @@ class QParser(QMainWindow, Ui_MainWindow):
         print("QProcess Finishied!")
 
     @pyqtSlot()
+    def on_parserfolderLineEdit_textChanged(self):
+        self.paths.set('parserfolder', self.parserfolderLineEdit.text())
+
+    @pyqtSlot()
     def on_parserfolderPushButton_clicked(self):
-        path = self.get_folder_path(self.parserfolder_path)
+        path = self.get_folder_path(self.parserfolderLineEdit.text())
         if path:
             self.parserfolder_path = path
             self.parserfolderLineEdit.setText(path)
 
     @pyqtSlot()
+    def on_toolsfolderLineEdit_textChanged(self):
+        self.paths.set('toolsfolder64', self.toolsfolderLineEdit.text())
+
+    @pyqtSlot()
     def on_toolsfolderPushButton_clicked(self):
-        path = self.get_folder_path(self.toolsfolder_path)
+        path = self.get_folder_path(self.toolsfolderLineEdit.text())
         if path:
             self.toolsfolder_path = path
             self.toolsfolderLineEdit.setText(path)
             self.update_toolspath()
 
-    @pyqtSlot()
-    def on_dumpfolderPushButton_clicked(self):
-        path = self.get_folder_path(self.dumpfolder_path)
-        if path:
-            self.dumpfolder_path = path
-            self.dumpfolderLineEdit.setText(path)
-
-    @pyqtSlot()
-    def on_vmlinuxPushButton_clicked(self):
-        path = self.get_file_path(self.vmlinux_path)
-        if path:
-            self.vmlinux_path = path
-            self.vmlinuxLineEdit.setText(path)
-
-    @pyqtSlot()
-    def on_outputfolderPushButton_clicked(self):
-        path = self.get_folder_path(self.outputfolder_path)
-        if path:
-            self.outputfolder_path = path
-            self.outputfolderLineEdit.setText(path)
-
     @pyqtSlot(str)
     def on_dumpfolderLineEdit_textChanged(self, arg):
+        self.paths.set('dumpfolder', arg)
         self.vmlinux_path = os.path.join(arg, "vmlinux")
         self.vmlinuxLineEdit.setText(self.vmlinux_path)
         self.outputfolder_path = os.path.join(arg, "parser")
         self.outputfolderLineEdit.setText(self.outputfolder_path)
 
+    @pyqtSlot()
+    def on_dumpfolderPushButton_clicked(self):
+        path = self.get_folder_path(self.dumpfolderLineEdit.text())
+        if path:
+            self.dumpfolder_path = path
+            self.dumpfolderLineEdit.setText(path)
+
+    @pyqtSlot()
+    def on_vmlinuxLineEdit_textChanged(self):
+        self.paths.set('vmlinux', self.vmlinuxLineEdit.text())
+
+    @pyqtSlot()
+    def on_vmlinuxPushButton_clicked(self):
+        path = self.get_file_path(self.vmlinuxLineEdit.text())
+        if path:
+            self.vmlinux_path = path
+            self.vmlinuxLineEdit.setText(path)
+
+    @pyqtSlot()
+    def on_outputfolderLineEdit_textChanged(self):
+        self.paths.set('outputfolder', self.outputfolderLineEdit.text())
+
+    @pyqtSlot()
+    def on_outputfolderPushButton_clicked(self):
+        path = self.get_folder_path(self.outputfolderLineEdit.text())
+        if path:
+            self.outputfolder_path = path
+            self.outputfolderLineEdit.setText(path)
 
     @pyqtSlot()
     def on_parsePushButton_clicked(self):
-        args = [self.parser_path, "-v", self.vmlinux_path, "-g", self.gdb64_path, \
-                "-n", self.nm64_path, "-j", self.objdump64_path, "-o", self.outputfolder_path, \
+        args = [self.parser_path, "-v", self.vmlinux_path, "-g", self.gdb_path, \
+                "-n", self.nm_path, "-j", self.objdump_path, "-o", self.outputfolder_path, \
                 "-a", self.dumpfolder_path, "-x"]
 
         if self.forcehwCheckBox.isChecked():
@@ -206,7 +242,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputTextBrowser.setTextCursor(cursor)
 
     def closeEvent(self, *args, **kwargs):
-        self.save_settings()
+        self.paths.save()
 
 
 if __name__ == "__main__":
