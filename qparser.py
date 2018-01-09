@@ -65,7 +65,6 @@ class PathSettings():
         return self.__paths[key]
 
     def set(self, key=None, value=None):
-        print("{}:{}".format(key, value))
         self.__paths[key] = value
 
 
@@ -87,6 +86,18 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.parser_path = self.paths.get('parser')
 
         if self.aarch64CheckBox.isChecked():
+            self.set_tools_aarch64(True)
+        else:
+            self.set_tools_aarch64(False)
+
+        self.dumpfolder_path = self.paths.get('dumpfolder')
+        self.vmlinux_path = self.paths.get('vmlinux')
+        self.outputfolder_path = self.paths.get('outputfolder')
+
+        self.hardwareid = self.forcehwLineEdit.text()
+
+    def set_tools_aarch64(self, is_aarch64=True):
+        if is_aarch64:
             self.toolsfolder_path = self.paths.get('toolsfolder64')
             self.gdb_path = self.paths.get('gdb64')
             self.nm_path = self.paths.get('nm64')
@@ -96,12 +107,6 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.gdb_path = self.paths.get('gdb')
             self.nm_path = self.paths.get('nm')
             self.objdump_path = self.paths.get('objdump')
-
-        self.dumpfolder_path = self.paths.get('dumpfolder')
-        self.vmlinux_path = self.paths.get('vmlinux')
-        self.outputfolder_path = self.paths.get('outputfolder')
-
-        self.hardware = self.forcehwLineEdit.text()
 
     def update_ui(self):
         self.parserfolderLineEdit.setText(self.parserfolder_path)
@@ -224,7 +229,7 @@ class QParser(QMainWindow, Ui_MainWindow):
                 "-a", self.dumpfolder_path, "-x"]
 
         if self.forcehwCheckBox.isChecked():
-            args += ["--force-hardware", self.hardware]
+            args += ["--force-hardware", self.hardwareid]
 
         self.outputTextBrowser.setText(" ".join(args))
         self.outputTextBrowser.append("\n")
@@ -233,7 +238,16 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def on_forcehwLineEdit_textChanged(self, arg):
-        self.hardware = self.forcehwLineEdit.text()
+        self.hardwareid = self.forcehwLineEdit.text()
+
+    @pyqtSlot(int)
+    def on_aarch64CheckBox_stateChanged(self, state):
+        if state == Qt.Checked:
+            self.set_tools_aarch64(True)
+        else:
+            self.set_tools_aarch64(False)
+
+        self.toolsfolderLineEdit.setText(self.toolsfolder_path)
 
     @pyqtSlot()
     def on_outputTextBrowser_cursorPositionChanged(self):
