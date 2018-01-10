@@ -203,6 +203,12 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.outputfolderLineEdit.setText(path)
 
     @pyqtSlot()
+    def on_outputTextBrowser_cursorPositionChanged(self):
+        cursor = self.outputTextBrowser.textCursor()
+        cursor.movePosition(QTextCursor.End)
+        self.outputTextBrowser.setTextCursor(cursor)
+
+    @pyqtSlot()
     def on_parsePushButton_clicked(self):
         python = self.paths['python']
         parser = self.paths['parser']
@@ -219,11 +225,13 @@ class QParser(QMainWindow, Ui_MainWindow):
             nm = self.paths['nm']
             objdump = self.paths['objdump']
 
-        args = [parser, "-v", vmlinux, "-g", gdb, "-n", nm, "-j", objdump, \
-                "-o", outputfolder, "-a", dumpfolder, "-x"]
+        args = [parser, '-v', vmlinux, '-g', gdb, '-n', nm, '-j', objdump, \
+                '-o', outputfolder, '-a', dumpfolder]
 
+        if self.everythingCheckBox.isChecked():
+            args += ['-x']
         if self.forcehwCheckBox.isChecked():
-            args += ["--force-hardware", self.hwidLineEdit.text()]
+            args += ['--force-hardware', self.hwidLineEdit.text()]
 
         self.outputTextBrowser.setTextColor(Qt.black)
         self.outputTextBrowser.setText(" ".join([python] + args))
@@ -231,10 +239,16 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.run_parser_qprocess(python, args)
 
     @pyqtSlot()
-    def on_outputTextBrowser_cursorPositionChanged(self):
-        cursor = self.outputTextBrowser.textCursor()
-        cursor.movePosition(QTextCursor.End)
-        self.outputTextBrowser.setTextCursor(cursor)
+    def on_resultPushButton_clicked(self):
+        if platform.system() == 'Linux':
+            editor = '/usr/bin/gnome-text-editor'
+        if platform.system() == 'Windows':
+            editor = 'notepad.exe'
+
+        result = os.path.join(self.paths['outputfolder'], 'dmesg_TZ.txt')
+
+        if os.access(editor, os.F_OK) and os.access(result, os.F_OK):
+            os.system(' '.join([editor, result]))
 
 
 if __name__ == "__main__":
