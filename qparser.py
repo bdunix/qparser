@@ -9,7 +9,8 @@ from PyQt5.QtCore import *
 from PyQt5.QtGui import *
 from PyQt5.QtWidgets import *
 
-from ui_qparser import Ui_MainWindow
+from ui_qparser import *
+from decoder import *
 
 
 class QParser(QMainWindow, Ui_MainWindow):
@@ -143,7 +144,9 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputTextBrowser.append(line)
 
     def on_process_finished(self):
-        print("QProcess Finishied!")
+        #print("QProcess Finishied!")
+        self.outputTextBrowser.setTextColor(Qt.black)
+        self.outputTextBrowser.append('Finished!')
 
     @pyqtSlot(str)
     def on_parserfolderLineEdit_textChanged(self, text):
@@ -273,7 +276,10 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def on_decoderPushButton_clicked(self):
-        print(sys._getframe().f_code.co_name)
+        #print(sys._getframe().f_code.co_name)
+        decoderdlg = DecoderDlg()
+        if decoderdlg.exec_():
+            print("dlg ok")
 
 
 if __name__ == "__main__":
