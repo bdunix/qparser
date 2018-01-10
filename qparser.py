@@ -19,6 +19,10 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.load_paths()
         self.refresh_ui()
 
+        settings = QSettings()
+        self.restoreGeometry(settings.value("MainWindow/Geometry", QByteArray()))
+        self.restoreState(settings.value("MainWindow/State", QByteArray()))
+
     def set_default_paths(self):
         self.paths = {}
 
@@ -27,46 +31,58 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
             self.paths['toolsfolder'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_arm-eabi/bin'
             self.paths['toolsfolder64'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin'
-            prefix = 'arm-eabi-'
-            prefix64 = 'aarch64-elf-'
-            postfix = ''
 
         if platform.system() == 'Windows':
             self.paths['python'] = "C:\Python27\python.exe"
             self.paths['parserfolder'] = "C:\\work\\tools\\linux-ramdump-parser-v2"
             self.paths['toolsfolder'] = "C:\\tools\\arm-none-eabi"
             self.paths['toolsfolder64'] = "C:\\tools\\aarch64-linux-gnu-gcc"
-            prefix = 'arm-none-eabi'
-            prefix64 = 'aarch64-linux-gnu-gcc-'
-            postfix = '.exe'
 
-        self.paths['parser'] = os.path.join(self.paths['parserfolder'], 'ramparse.py')
-
-        tools = ['gdb', 'nm', 'objdump']
-        for key in tools:
-            self.paths[key] = os.path.join(self.paths['toolsfolder'], prefix + key + postfix)
-            self.paths[key + '64'] = os.path.join(self.paths['toolsfolder64'], prefix64 + key + postfix)
+        self.update_toolspath()
 
         self.paths['dumpfolder'] = os.path.join(os.environ["HOME"], "case")
         self.paths['vmlinux'] = os.path.join(self.paths['dumpfolder'], "vmlinux")
         self.paths['outputfolder'] = os.path.join(self.paths['dumpfolder'], "parser")
 
         # for k,v in self.paths.items(): print("{}:{}".format(k, v))
-    
+
+    def update_toolspath(self):
+        self.paths['parser'] = os.path.join(self.paths['parserfolder'], 'ramparse.py')
+
+        tools = ['gdb', 'nm', 'objdump']
+
+        if platform.system() == 'Linux':
+            prefix = 'arm-eabi-'
+            prefix64 = 'aarch64-elf-'
+            postfix = ''
+
+        if platform.system() == 'Windows':
+            prefix = 'arm-none-eabi'
+            prefix64 = 'aarch64-linux-gnu-gcc-'
+            postfix = '.exe'
+
+        for key in tools:
+            self.paths[key] = os.path.join(self.paths['toolsfolder'], prefix + key + postfix)
+            self.paths[key + '64'] = os.path.join(self.paths['toolsfolder64'], prefix64 + key + postfix)
+
     def load_paths(self):
         self.set_default_paths()
-        
+
         settings = QSettings()
         for k, v in self.paths.items():
             self.paths[k] = settings.value(k) or v
-        
+
     def save_paths(self):
         settings = QSettings()
         for k, v in self.paths.items():
             settings.setValue(k, v)
-            
+
     def closeEvent(self, *args, **kwargs):
         self.save_paths()
+
+        settings = QSettings()
+        settings.setValue("MainWindow/Geometry", self.saveGeometry())
+        settings.setValue("MainWindow/State", self.saveState())
 
     def refresh_ui(self):
         self.parserfolderLineEdit.setText(self.paths['parserfolder'])
@@ -109,18 +125,12 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.process.start(program, args)
 
     def on_process_readyReadStandardOutput(self):
-        #while self.process.canReadLine(): print(self.process.readLine())
-        line = str(self.process.readAllStandardOutput())
+        line = bytearray(self.process.readAllStandardOutput()).decode('utf-8')
         self.outputTextBrowser.setTextColor(Qt.blue)
         self.outputTextBrowser.append(line)
 
-
     def on_process_readyReadStandardError(self):
-        line = str(self.process.readAllStandardError())
-        # if line.endswith('\n'):
-        #    print(line)
-        # else:
-        #   print(line, end=' ')
+        line = bytearray(self.process.readAllStandardError()).decode('utf-8')
         self.outputTextBrowser.setTextColor(Qt.red)
         self.outputTextBrowser.append(line)
 
@@ -130,6 +140,7 @@ class QParser(QMainWindow, Ui_MainWindow):
     @pyqtSlot(str)
     def on_parserfolderLineEdit_textChanged(self, text):
         self.paths['parserfolder'] = text
+        self.update_toolspath()
 
     @pyqtSlot()
     def on_parserfolderPushButton_clicked(self):
@@ -140,6 +151,7 @@ class QParser(QMainWindow, Ui_MainWindow):
     @pyqtSlot(str)
     def on_toolsfolderLineEdit_textChanged(self, text):
         self.paths['toolsfolder'] = text
+        self.update_toolspath()
 
     @pyqtSlot()
     def on_toolsfolderPushButton_clicked(self):
@@ -150,6 +162,7 @@ class QParser(QMainWindow, Ui_MainWindow):
     @pyqtSlot(str)
     def on_toolsfolder64LineEdit_textChanged(self, text):
         self.paths['toolsfolder64'] = text
+        self.update_toolspath()
 
     @pyqtSlot()
     def on_toolsfolder64PushButton_clicked(self):
@@ -212,8 +225,9 @@ class QParser(QMainWindow, Ui_MainWindow):
         if self.forcehwCheckBox.isChecked():
             args += ["--force-hardware", self.hwidLineEdit.text()]
 
+        self.outputTextBrowser.setTextColor(Qt.black)
         self.outputTextBrowser.setText(" ".join([python] + args))
-        
+
         self.run_parser_qprocess(python, args)
 
     @pyqtSlot()
