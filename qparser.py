@@ -30,12 +30,12 @@ class QParser(QMainWindow, Ui_MainWindow):
         if platform.system() == 'Linux':
             self.paths['python'] = '/usr/bin/python2'
             self.paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
-            self.paths['toolsfolder'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_arm-eabi/bin'
-            self.paths['toolsfolder64'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin'
+            self.paths['toolsfolder'] = '/usr/bin'
+            self.paths['toolsfolder64'] = '/usr/bin'
 
         if platform.system() == 'Windows':
             self.paths['python'] = "C:\Python27\python.exe"
-            self.paths['parserfolder'] = "C:\\work\\tools\\linux-ramdump-parser-v2"
+            self.paths['parserfolder'] = "C:\\tools\\linux-ramdump-parser-v2"
             self.paths['toolsfolder'] = "C:\\tools\\arm-none-eabi"
             self.paths['toolsfolder64'] = "C:\\tools\\aarch64-linux-gnu-gcc"
 
