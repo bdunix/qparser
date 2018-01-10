@@ -225,6 +225,13 @@
        </widget>
       </item>
       <item>
+       <widget class="QPushButton" name="t32PushButton">
+        <property name="text">
+         <string>Launch T32</string>
+        </property>
+       </widget>
+      </item>
+      <item>
        <widget class="QPushButton" name="explorePushButton">
         <property name="text">
          <string>Explore Output</string>

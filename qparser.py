@@ -277,6 +277,19 @@ class QParser(QMainWindow, Ui_MainWindow):
             os.system(' '.join([prog, target]))
 
     @pyqtSlot()
+    def on_t32PushButton_clicked(self):
+        launcher = os.path.join(self.paths['outputfolder'], 'launch_t32')
+        if platform.system() == 'Linux':
+            launcher += '.sh'
+        if platform.system() == 'Windows':
+            launcher += '.bat'
+
+        if os.access(launcher, os.F_OK):
+            os.system(launcher)
+        else:
+            QMessageBox.warning(self, "T32 launcher error", "No such file: " + launcher)
+
+    @pyqtSlot()
     def on_explorePushButton_clicked(self):
         if platform.system() == 'Linux':
             prog = '/usr/bin/nautilus'
