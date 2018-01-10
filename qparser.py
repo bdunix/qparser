@@ -147,6 +147,21 @@ class QParser(QMainWindow, Ui_MainWindow):
         #print("QProcess Finishied!")
         self.outputTextBrowser.setTextColor(Qt.black)
         self.outputTextBrowser.append('Finished!')
+        self.tune_output()
+
+    def tune_output(self):
+        if platform.system() == 'Linux':
+            t32_config_file = os.path.join(self.paths['outputfolder'], 't32_config.t32')
+            try:
+                with open(t32_config_file, 'r') as f:
+                    all_lines = f.readlines()
+                with open(t32_config_file, 'w') as f:
+                    for line in all_lines:
+                        if 'PRINTER=' in line: continue
+                        f.write(line)
+            except Exception as e:
+                print(str(e))
+                QMessageBox.warning(self, "Open file error", str(e))
 
     @pyqtSlot(str)
     def on_parserfolderLineEdit_textChanged(self, text):
@@ -279,7 +294,8 @@ class QParser(QMainWindow, Ui_MainWindow):
         #print(sys._getframe().f_code.co_name)
         decoderdlg = DecoderDlg()
         if decoderdlg.exec_():
-            print("dlg ok")
+            print("Decode result: {}".format(decoderdlg.outputTextEdit.toPlainText()))
+
 
 
 if __name__ == "__main__":
