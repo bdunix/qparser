@@ -12,81 +12,69 @@ from PyQt5.QtWidgets import *
 from ui_qparser import Ui_MainWindow
 
 
-class PathSettings():
+class QParser(QMainWindow, Ui_MainWindow):
     def __init__(self):
-        self.__paths = {}
+        super().__init__()
+        self.setupUi(self)
+        self.load_paths()
+        self.refresh_ui()
+
+    def set_default_paths(self):
+        self.paths = {}
 
         if platform.system() == 'Linux':
-            self.__paths['python'] = '/usr/bin/python2'
-            self.__paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
-            self.__paths['toolsfolder'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_arm-eabi/bin'
-            self.__paths['toolsfolder64'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin'
+            self.paths['python'] = '/usr/bin/python2'
+            self.paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
+            self.paths['toolsfolder'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_arm-eabi/bin'
+            self.paths['toolsfolder64'] = '/opt/LinaroToolchain/gcc-linaro-4.9.4-2017.01-x86_64_aarch64-elf/bin'
             prefix = 'arm-eabi-'
             prefix64 = 'aarch64-elf-'
             postfix = ''
 
         if platform.system() == 'Windows':
-            self.__paths['python'] = "C:\Python27\python.exe"
-            self.__paths['parserfolder'] = "C:\\work\\tools\\linux-ramdump-parser-v2"
-            self.__paths['toolsfolder'] = "C:\\tools\\arm-none-eabi"
-            self.__paths['toolsfolder64'] = "C:\\tools\\aarch64-linux-gnu-gcc"
+            self.paths['python'] = "C:\Python27\python.exe"
+            self.paths['parserfolder'] = "C:\\work\\tools\\linux-ramdump-parser-v2"
+            self.paths['toolsfolder'] = "C:\\tools\\arm-none-eabi"
+            self.paths['toolsfolder64'] = "C:\\tools\\aarch64-linux-gnu-gcc"
             prefix = 'arm-none-eabi'
             prefix64 = 'aarch64-linux-gnu-gcc-'
             postfix = '.exe'
 
-        self.__paths['parser'] = os.path.join(self.__paths['parserfolder'], 'ramparse.py')
+        self.paths['parser'] = os.path.join(self.paths['parserfolder'], 'ramparse.py')
 
         tools = ['gdb', 'nm', 'objdump']
         for key in tools:
-            self.__paths[key] = os.path.join(self.__paths['toolsfolder'], prefix + key + postfix)
-            self.__paths[key + '64'] = os.path.join(self.__paths['toolsfolder64'], prefix64 + key + postfix)
+            self.paths[key] = os.path.join(self.paths['toolsfolder'], prefix + key + postfix)
+            self.paths[key + '64'] = os.path.join(self.paths['toolsfolder64'], prefix64 + key + postfix)
 
-        self.__paths['dumpfolder'] = os.path.join(os.environ["HOME"], "case")
-        self.__paths['vmlinux'] = os.path.join(self.__paths['dumpfolder'], "vmlinux")
-        self.__paths['outputfolder'] = os.path.join(self.__paths['dumpfolder'], "parser")
+        self.paths['dumpfolder'] = os.path.join(os.environ["HOME"], "case")
+        self.paths['vmlinux'] = os.path.join(self.paths['dumpfolder'], "vmlinux")
+        self.paths['outputfolder'] = os.path.join(self.paths['dumpfolder'], "parser")
 
-        # for k,v in self.__paths.items(): print("{}:{}".format(k, v))
-
-        self.load()
-
-    def load(self, org=None, ):
-        '''Load all stored value from system'''
+        # for k,v in self.paths.items(): print("{}:{}".format(k, v))
+    
+    def load_paths(self):
+        self.set_default_paths()
+        
         settings = QSettings()
-        for k, v in self.__paths.items():
-            self.__paths[k] = settings.value(k) or v
-
-    def save(self):
-        '''Store all value in system'''
+        for k, v in self.paths.items():
+            self.paths[k] = settings.value(k) or v
+        
+    def save_paths(self):
         settings = QSettings()
-        for k, v in self.__paths.items():
+        for k, v in self.paths.items():
             settings.setValue(k, v)
-
-    def get(self, key=None):
-        return self.__paths[key]
-
-    def set(self, key=None, value=None):
-        self.__paths[key] = value
-
-
-class QParser(QMainWindow, Ui_MainWindow):
-    def __init__(self):
-        super().__init__()
-        self.setupUi(self)
-
-        self.paths = PathSettings()
-
-        self.refresh_ui()
-
+            
     def closeEvent(self, *args, **kwargs):
-        self.paths.save()
+        self.save_paths()
 
     def refresh_ui(self):
-        self.parserfolderLineEdit.setText(self.paths.get('parserfolder'))
-        self.toolsfolderLineEdit.setText(self.paths.get('toolsfolder'))
-        self.toolsfolder64LineEdit.setText(self.paths.get('toolsfolder64'))
-        self.dumpfolderLineEdit.setText(self.paths.get('dumpfolder'))
-        self.vmlinuxLineEdit.setText(self.paths.get('vmlinux'))
-        self.outputfolderLineEdit.setText(self.paths.get('outputfolder'))
+        self.parserfolderLineEdit.setText(self.paths['parserfolder'])
+        self.toolsfolderLineEdit.setText(self.paths['toolsfolder'])
+        self.toolsfolder64LineEdit.setText(self.paths['toolsfolder64'])
+        self.dumpfolderLineEdit.setText(self.paths['dumpfolder'])
+        self.vmlinuxLineEdit.setText(self.paths['vmlinux'])
+        self.outputfolderLineEdit.setText(self.paths['outputfolder'])
 
     def get_folder_path(self, folder_path):
         dir = os.path.dirname(folder_path if folder_path is not None else ".")
@@ -141,7 +129,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(str)
     def on_parserfolderLineEdit_textChanged(self, text):
-        self.paths.set('parserfolder', text)
+        self.paths['parserfolder'] = text
 
     @pyqtSlot()
     def on_parserfolderPushButton_clicked(self):
@@ -151,7 +139,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(str)
     def on_toolsfolderLineEdit_textChanged(self, text):
-        self.paths.set('toolsfolder', text)
+        self.paths['toolsfolder'] = text
 
     @pyqtSlot()
     def on_toolsfolderPushButton_clicked(self):
@@ -161,7 +149,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(str)
     def on_toolsfolder64LineEdit_textChanged(self, text):
-        self.paths.set('toolsfolder64', text)
+        self.paths['toolsfolder64'] = text
 
     @pyqtSlot()
     def on_toolsfolder64PushButton_clicked(self):
@@ -171,7 +159,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(str)
     def on_dumpfolderLineEdit_textChanged(self, text):
-        self.paths.set('dumpfolder', text)
+        self.paths['dumpfolder'] = text
         self.vmlinuxLineEdit.setText(os.path.join(text, "vmlinux"))
         self.outputfolderLineEdit.setText(os.path.join(text, "parser"))
 
@@ -183,7 +171,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(str)
     def on_vmlinuxLineEdit_textChanged(self, text):
-        self.paths.set('vmlinux', text)
+        self.paths['vmlinux'] = text
 
     @pyqtSlot()
     def on_vmlinuxPushButton_clicked(self):
@@ -193,7 +181,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot(str)
     def on_outputfolderLineEdit_textChanged(self, text):
-        self.paths.set('outputfolder', text)
+        self.paths['outputfolder'] = text
 
     @pyqtSlot()
     def on_outputfolderPushButton_clicked(self):
@@ -203,20 +191,20 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def on_parsePushButton_clicked(self):
-        python = self.paths.get('python')
-        parser = self.paths.get('parser')
-        dumpfolder = self.paths.get('dumpfolder')
-        vmlinux = self.paths.get('vmlinux')
-        outputfolder = self.paths.get('outputfolder')
+        python = self.paths['python']
+        parser = self.paths['parser']
+        dumpfolder = self.paths['dumpfolder']
+        vmlinux = self.paths['vmlinux']
+        outputfolder = self.paths['outputfolder']
 
         if self.aarch64CheckBox.isChecked():
-            gdb = self.paths.get('gdb64')
-            nm = self.paths.get('nm64')
-            objdump = self.paths.get('objdump64')
+            gdb = self.paths['gdb64']
+            nm = self.paths['nm64']
+            objdump = self.paths['objdump64']
         else:
-            gdb = self.paths.get('gdb')
-            nm = self.paths.get('nm')
-            objdump = self.paths.get('objdump')
+            gdb = self.paths['gdb']
+            nm = self.paths['nm']
+            objdump = self.paths['objdump']
 
         args = [parser, "-v", vmlinux, "-g", gdb, "-n", nm, "-j", objdump, \
                 "-o", outputfolder, "-a", dumpfolder, "-x"]
