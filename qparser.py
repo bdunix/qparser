@@ -118,11 +118,19 @@ class QParser(QMainWindow, Ui_MainWindow):
     def run_parser_qprocess(self, program, args):
         self.process = QProcess()
 
+        #self.process.readyRead.connect(self.on_process_readyRead)
+        #self.process.setProcessChannelMode(QProcess.MergedChannels)
+
         self.process.readyReadStandardOutput.connect(self.on_process_readyReadStandardOutput)
         self.process.readyReadStandardError.connect(self.on_process_readyReadStandardError)
         self.process.finished.connect(self.on_process_finished)
 
         self.process.start(program, args)
+
+    def on_process_readyRead(self):
+        line = bytearray(self.process.readAll()).decode('utf-8')
+        self.outputTextBrowser.setTextColor(Qt.blue)
+        self.outputTextBrowser.append(line)
 
     def on_process_readyReadStandardOutput(self):
         line = bytearray(self.process.readAllStandardOutput()).decode('utf-8')
@@ -262,6 +270,10 @@ class QParser(QMainWindow, Ui_MainWindow):
         if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
             print(' '.join([prog, target]))
             os.system(' '.join([prog, target]))
+
+    @pyqtSlot()
+    def on_decoderPushButton_clicked(self):
+        print(sys._getframe().f_code.co_name)
 
 
 if __name__ == "__main__":
