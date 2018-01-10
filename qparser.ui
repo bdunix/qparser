@@ -225,9 +225,9 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="browseoutPushButton">
+       <widget class="QPushButton" name="explorePushButton">
         <property name="text">
-         <string>Output Folder</string>
+         <string>Explore Output</string>
         </property>
        </widget>
       </item>

@@ -241,14 +241,27 @@ class QParser(QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def on_resultPushButton_clicked(self):
         if platform.system() == 'Linux':
-            editor = '/usr/bin/gnome-text-editor'
+            prog = '/usr/bin/gnome-text-editor'
         if platform.system() == 'Windows':
-            editor = 'notepad.exe'
+            prog = 'notepad.exe'
 
-        result = os.path.join(self.paths['outputfolder'], 'dmesg_TZ.txt')
+        target = os.path.join(self.paths['outputfolder'], 'dmesg_TZ.txt')
 
-        if os.access(editor, os.F_OK) and os.access(result, os.F_OK):
-            os.system(' '.join([editor, result]))
+        if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
+            os.system(' '.join([prog, target]))
+
+    @pyqtSlot()
+    def on_explorePushButton_clicked(self):
+        if platform.system() == 'Linux':
+            prog = '/usr/bin/nautilus'
+        if platform.system() == 'Windows':
+            prog = 'explorer.exe'
+
+        target = self.paths['outputfolder']
+
+        if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
+            print(' '.join([prog, target]))
+            os.system(' '.join([prog, target]))
 
 
 if __name__ == "__main__":
