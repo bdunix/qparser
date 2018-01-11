@@ -68,6 +68,11 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.paths[key] = os.path.join(self.paths['toolsfolder'], prefix + key + postfix)
             self.paths[key + '64'] = os.path.join(self.paths['toolsfolder64'], prefix64 + key + postfix)
 
+        if platform.system() == 'Windows': # gdb's prefix is different from nm and objdump on Windows
+            self.paths['gdb'] = os.path.join(self.paths['toolsfolder'], 'arm-none-eabi-gdb.exe')
+            self.paths['gdb64'] = os.path.join(self.paths['toolsfolder64'], 'aarch64-linux-gnu-gdb.exe')
+
+
     def load_paths(self):
         self.set_default_paths()
 
