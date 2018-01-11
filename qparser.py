@@ -163,14 +163,27 @@ class QParser(QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, "Parser process error", errors[err])
 
     def tune_output(self):
+        t32_config_file = os.path.join(self.paths['outputfolder'], 't32_config.t32')
         if platform.system() == 'Linux':
-            t32_config_file = os.path.join(self.paths['outputfolder'], 't32_config.t32')
             try:
                 with open(t32_config_file, 'r') as f:
                     all_lines = f.readlines()
                 with open(t32_config_file, 'w') as f:
                     for line in all_lines:
                         if 'PRINTER=' in line: continue
+                        f.write(line)
+            except Exception as e:
+                print(str(e))
+                QMessageBox.warning(self, "Open file error", str(e))
+
+        if platform.system() == 'Windows':
+            try:
+                with open(t32_config_file, 'r') as f:
+                    all_lines = f.readlines()
+                with open(t32_config_file, 'w') as f:
+                    for line in all_lines:
+                        if line.startswith('TMP='):
+                            line = 'TMP=' + os.environ['TEMP'] + '\n'
                         f.write(line)
             except Exception as e:
                 print(str(e))
@@ -292,7 +305,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         if platform.system() == 'Linux':
             prog = '/usr/bin/gnome-text-editor'
         if platform.system() == 'Windows':
-            prog = 'notepad.exe'
+            prog = os.path.join(os.environ['WINDIR'],'write.exe')
 
         target = os.path.join(self.paths['outputfolder'], 'dmesg_TZ.txt')
 
@@ -317,7 +330,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         if platform.system() == 'Linux':
             prog = '/usr/bin/nautilus'
         if platform.system() == 'Windows':
-            prog = 'explorer.exe'
+            prog = os.path.join(os.environ['WINDIR'], 'explorer.exe')
 
         target = self.paths['outputfolder']
 
@@ -330,9 +343,9 @@ class QParser(QMainWindow, Ui_MainWindow):
         #print(sys._getframe().f_code.co_name)
         decoderdlg = DecoderDlg()
         if decoderdlg.exec_():
-            print("Decode result: {}".format(decoderdlg.outputTextEdit.toPlainText()))
+            pass
 
-
+        self.tune_output()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
