@@ -32,16 +32,18 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
             self.paths['toolsfolder'] = '/usr/bin'
             self.paths['toolsfolder64'] = '/usr/bin'
+            self.paths['dumpfolder'] = os.path.join(os.environ['HOME'], 'case')
 
         if platform.system() == 'Windows':
-            self.paths['python'] = "C:\Python27\python.exe"
-            self.paths['parserfolder'] = "C:\\tools\\linux-ramdump-parser-v2"
-            self.paths['toolsfolder'] = "C:\\tools\\arm-none-eabi"
-            self.paths['toolsfolder64'] = "C:\\tools\\aarch64-linux-gnu-gcc"
+            self.paths['python'] = 'C:\Python27\python.exe'
+            self.paths['parserfolder'] = 'C:\\work\\tools\\linux-ramdump-parser-v2'
+            self.paths['toolsfolder'] = 'C:\\work\\arm-none-eabi'
+            self.paths['toolsfolder64'] = 'C:\\work\\aarch64-linux-gnu-gcc'
+            self.paths['dumpfolder'] = os.path.join(os.environ['USERPROFILE'], 'case')
 
         self.update_toolspath()
 
-        self.paths['dumpfolder'] = os.path.join(os.environ["HOME"], "case")
+
         self.paths['vmlinux'] = os.path.join(self.paths['dumpfolder'], "vmlinux")
         self.paths['outputfolder'] = os.path.join(self.paths['dumpfolder'], "parser")
 
@@ -86,6 +88,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         settings.setValue("MainWindow/State", self.saveState())
 
     def refresh_ui(self):
+        self.pythonLineEdit.setText(self.paths['python'])
         self.parserfolderLineEdit.setText(self.paths['parserfolder'])
         self.toolsfolderLineEdit.setText(self.paths['toolsfolder'])
         self.toolsfolder64LineEdit.setText(self.paths['toolsfolder64'])
@@ -125,6 +128,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.process.readyReadStandardOutput.connect(self.on_process_readyReadStandardOutput)
         self.process.readyReadStandardError.connect(self.on_process_readyReadStandardError)
         self.process.finished.connect(self.on_process_finished)
+        self.process.errorOccurred.connect(self.on_process_errorOccurred)
 
         self.process.start(program, args)
 
@@ -149,6 +153,10 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputTextBrowser.append('Finished!')
         self.tune_output()
 
+    def on_process_errorOccurred(self, err):
+        errors = ['FailedToStart', 'Crashed', 'Timedout', 'WriteError', 'ReadError', 'UnknownError']
+        QMessageBox.warning(self, "Parser process error", errors[err])
+
     def tune_output(self):
         if platform.system() == 'Linux':
             t32_config_file = os.path.join(self.paths['outputfolder'], 't32_config.t32')
@@ -162,6 +170,16 @@ class QParser(QMainWindow, Ui_MainWindow):
             except Exception as e:
                 print(str(e))
                 QMessageBox.warning(self, "Open file error", str(e))
+
+    @pyqtSlot(str)
+    def on_pythonLineEdit_textChanged(self, text):
+        self.paths['python'] = text
+
+    @pyqtSlot()
+    def on_pythonPushButton_clicked(self):
+        path = self.get_file_path(self.vmlinuxLineEdit.text())
+        if path:
+            self.pythonLineEdit.setText(path)
 
     @pyqtSlot(str)
     def on_parserfolderLineEdit_textChanged(self, text):

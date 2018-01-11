@@ -17,52 +17,69 @@
    <layout class="QVBoxLayout" name="verticalLayout_2">
     <item>
      <layout class="QGridLayout" name="gridLayout">
-      <item row="0" column="0">
+      <item row="1" column="0">
        <widget class="QLabel" name="label_4">
         <property name="text">
          <string>Parser Folder:</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="1">
-       <widget class="QLineEdit" name="parserfolderLineEdit"/>
+      <item row="3" column="2">
+       <widget class="QLineEdit" name="toolsfolder64LineEdit"/>
       </item>
-      <item row="0" column="2">
-       <widget class="QPushButton" name="parserfolderPushButton">
-        <property name="text">
-         <string>...</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="0">
-       <widget class="QLabel" name="label_5">
-        <property name="text">
-         <string>Tools(gdb/nm/objdump) Folder:</string>
-        </property>
-       </widget>
-      </item>
-      <item row="1" column="1">
-       <widget class="QLineEdit" name="toolsfolderLineEdit"/>
-      </item>
-      <item row="1" column="2">
+      <item row="2" column="3">
        <widget class="QPushButton" name="toolsfolderPushButton">
         <property name="text">
          <string>...</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="0">
+      <item row="1" column="2">
+       <widget class="QLineEdit" name="parserfolderLineEdit"/>
+      </item>
+      <item row="2" column="2">
+       <widget class="QLineEdit" name="toolsfolderLineEdit"/>
+      </item>
+      <item row="3" column="3">
+       <widget class="QPushButton" name="toolsfolder64PushButton">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
+      </item>
+      <item row="3" column="0">
        <widget class="QLabel" name="label_7">
         <property name="text">
          <string>Tools(gdb/nm/objdump) Folder (64bit ):</string>
         </property>
        </widget>
       </item>
-      <item row="2" column="1">
-       <widget class="QLineEdit" name="toolsfolder64LineEdit"/>
+      <item row="1" column="3">
+       <widget class="QPushButton" name="parserfolderPushButton">
+        <property name="text">
+         <string>...</string>
+        </property>
+       </widget>
       </item>
-      <item row="2" column="2">
-       <widget class="QPushButton" name="toolsfolder64PushButton">
+      <item row="2" column="0">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Tools(gdb/nm/objdump) Folder:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QLabel" name="label_8">
+        <property name="text">
+         <string>Python2:</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLineEdit" name="pythonLineEdit"/>
+      </item>
+      <item row="0" column="3">
+       <widget class="QPushButton" name="pythonPushButton">
         <property name="text">
          <string>...</string>
         </property>
@@ -256,7 +273,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>22</height>
+     <height>23</height>
     </rect>
    </property>
    <widget class="QMenu" name="fileMenu">
