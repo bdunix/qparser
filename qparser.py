@@ -43,7 +43,6 @@ class QParser(QMainWindow, Ui_MainWindow):
 
         self.update_toolspath()
 
-
         self.paths['vmlinux'] = os.path.join(self.paths['dumpfolder'], "vmlinux")
         self.paths['outputfolder'] = os.path.join(self.paths['dumpfolder'], "parser")
 
@@ -281,7 +280,6 @@ class QParser(QMainWindow, Ui_MainWindow):
             prog = os.path.join(os.environ['WINDIR'],'write.exe')
 
         target = os.path.join(self.paths['outputfolder'], 'dmesg_TZ.txt')
-
         if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
             os.system(' '.join([prog, target]))
 
@@ -306,7 +304,6 @@ class QParser(QMainWindow, Ui_MainWindow):
             prog = os.path.join(os.environ['WINDIR'], 'explorer.exe')
 
         target = self.paths['outputfolder']
-
         if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
             print(' '.join([prog, target]))
             os.system(' '.join([prog, target]))
