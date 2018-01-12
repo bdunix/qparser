@@ -31,14 +31,12 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.paths['python'] = '/usr/bin/python2'
             self.paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
             self.paths['toolsfolder'] = '/usr/bin'
-            self.paths['toolsfolder64'] = '/usr/bin'
             self.paths['dumpfolder'] = os.path.join(os.environ['HOME'], 'case')
 
         if platform.system() == 'Windows':
             self.paths['python'] = 'C:\Python27\python.exe'
             self.paths['parserfolder'] = 'C:\\work\\tools\\linux-ramdump-parser-v2'
-            self.paths['toolsfolder'] = 'C:\\work\\arm-none-eabi'
-            self.paths['toolsfolder64'] = 'C:\\work\\aarch64-linux-gnu-gcc'
+            self.paths['toolsfolder'] = 'C:\\work\\aarch64-linux-gnu-gcc'
             self.paths['dumpfolder'] = os.path.join(os.environ['USERPROFILE'], 'case')
 
         self.update_toolspath()
@@ -52,26 +50,19 @@ class QParser(QMainWindow, Ui_MainWindow):
     def update_toolspath(self):
         self.paths['parser'] = os.path.join(self.paths['parserfolder'], 'ramparse.py')
 
-        tools = ['gdb', 'nm', 'objdump']
+        folder = self.paths['toolsfolder']
+        files = []
+        for entry in os.scandir(folder): # get all files name in folder
+            if not entry.name.startswith('.') and entry.is_file():
+                files.append(entry.name)
 
-        if platform.system() == 'Linux':
-            prefix = 'arm-eabi-'
-            prefix64 = 'aarch64-elf-'
-            postfix = ''
-
-        if platform.system() == 'Windows':
-            prefix = 'arm-none-eabi'
-            prefix64 = 'aarch64-linux-gnu-gcc-'
-            postfix = '.exe'
-
-        for key in tools:
-            self.paths[key] = os.path.join(self.paths['toolsfolder'], prefix + key + postfix)
-            self.paths[key + '64'] = os.path.join(self.paths['toolsfolder64'], prefix64 + key + postfix)
-
-        if platform.system() == 'Windows': # gdb's prefix is different from nm and objdump on Windows
-            self.paths['gdb'] = os.path.join(self.paths['toolsfolder'], 'arm-none-eabi-gdb.exe')
-            self.paths['gdb64'] = os.path.join(self.paths['toolsfolder64'], 'aarch64-linux-gnu-gdb.exe')
-
+        for tool in ['gdb', 'nm', 'objdump']:
+            for f in files:
+                root, ext = os.path.splitext(f)
+                if root.startswith('aarch64') and root.endswith(tool):
+                    self.paths[tool] = os.path.join(folder, f)
+                    #print('found {} for {}'.format(f, tool))
+                    break
 
     def load_paths(self):
         self.set_default_paths()
@@ -96,7 +87,6 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.pythonLineEdit.setText(self.paths['python'])
         self.parserfolderLineEdit.setText(self.paths['parserfolder'])
         self.toolsfolderLineEdit.setText(self.paths['toolsfolder'])
-        self.toolsfolder64LineEdit.setText(self.paths['toolsfolder64'])
         self.dumpfolderLineEdit.setText(self.paths['dumpfolder'])
         self.vmlinuxLineEdit.setText(self.paths['vmlinux'])
         self.outputfolderLineEdit.setText(self.paths['outputfolder'])
@@ -222,17 +212,6 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.toolsfolderLineEdit.setText(path)
 
     @pyqtSlot(str)
-    def on_toolsfolder64LineEdit_textChanged(self, text):
-        self.paths['toolsfolder64'] = text
-        self.update_toolspath()
-
-    @pyqtSlot()
-    def on_toolsfolder64PushButton_clicked(self):
-        path = self.get_folder_path(self.toolsfolder64LineEdit.text())
-        if path:
-            self.toolsfolder64LineEdit.setText(path)
-
-    @pyqtSlot(str)
     def on_dumpfolderLineEdit_textChanged(self, text):
         self.paths['dumpfolder'] = text
         self.vmlinuxLineEdit.setText(os.path.join(text, "vmlinux"))
@@ -277,21 +256,13 @@ class QParser(QMainWindow, Ui_MainWindow):
         dumpfolder = self.paths['dumpfolder']
         vmlinux = self.paths['vmlinux']
         outputfolder = self.paths['outputfolder']
-
-        if self.aarch64CheckBox.isChecked():
-            gdb = self.paths['gdb64']
-            nm = self.paths['nm64']
-            objdump = self.paths['objdump64']
-        else:
-            gdb = self.paths['gdb']
-            nm = self.paths['nm']
-            objdump = self.paths['objdump']
+        gdb = self.paths['gdb']
+        nm = self.paths['nm']
+        objdump = self.paths['objdump']
 
         args = [parser, '-v', vmlinux, '-g', gdb, '-n', nm, '-j', objdump, \
-                '-o', outputfolder, '-a', dumpfolder]
+                '-o', outputfolder, '-a', dumpfolder, '-x']
 
-        if self.everythingCheckBox.isChecked():
-            args += ['-x']
         if self.forcehwCheckBox.isChecked():
             args += ['--force-hardware', self.hwidLineEdit.text()]
 
