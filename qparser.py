@@ -24,6 +24,8 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.restoreGeometry(settings.value("MainWindow/Geometry", QByteArray()))
         self.restoreState(settings.value("MainWindow/State", QByteArray()))
 
+        self.decoderDlg = None
+
     def set_default_paths(self):
         self.paths = {}
 
@@ -312,11 +314,11 @@ class QParser(QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def on_decoderPushButton_clicked(self):
         #print(sys._getframe().f_code.co_name)
-        decoderdlg = DecoderDlg()
-        if decoderdlg.exec_():
-            pass
-
-        self.tune_output()
+        if self.decoderDlg is None:
+            self.decoderDlg = DecoderDlg()
+        self.decoderDlg.show()
+        self.decoderDlg.raise_()
+        self.decoderDlg.activateWindow()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
