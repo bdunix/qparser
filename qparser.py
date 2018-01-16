@@ -28,6 +28,9 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     def set_default_paths(self):
         self.paths = {}
+        for path in ['python', 'parserfolder', 'toolsfolder', 'gdb', 'nm', 'objdump', 'dumpfolder', 'vmlinux',
+                     'outputfolder']:
+            self.paths[path] = ''
 
         if platform.system() == 'Linux':
             self.paths['python'] = '/usr/bin/python2'
@@ -38,7 +41,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         if platform.system() == 'Windows':
             self.paths['python'] = 'C:\Python27\python.exe'
             self.paths['parserfolder'] = 'C:\\work\\tools\\linux-ramdump-parser-v2'
-            self.paths['toolsfolder'] = 'C:\\work\\aarch64-linux-gnu-gcc'
+            self.paths['toolsfolder'] = 'C:\\work\\aarch64-elf'
             self.paths['dumpfolder'] = os.path.join(os.environ['USERPROFILE'], 'case')
 
         self.update_toolspath()
@@ -52,8 +55,10 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.paths['parser'] = os.path.join(self.paths['parserfolder'], 'ramparse.py')
 
         folder = self.paths['toolsfolder']
+        if not os.path.exists(folder): return
+
         files = []
-        for entry in os.scandir(folder): # get all files name in folder
+        for entry in os.scandir(folder):  # get all files name in folder
             if not entry.name.startswith('.') and entry.is_file():
                 files.append(entry.name)
 
@@ -62,7 +67,7 @@ class QParser(QMainWindow, Ui_MainWindow):
                 root, ext = os.path.splitext(f)
                 if root.startswith('aarch64') and root.endswith(tool):
                     self.paths[tool] = os.path.join(folder, f)
-                    #print('found {} for {}'.format(f, tool))
+                    # print('found {} for {}'.format(f, tool))
                     break
 
     def load_paths(self):
@@ -118,8 +123,8 @@ class QParser(QMainWindow, Ui_MainWindow):
     def run_parser_qprocess(self, program, args):
         self.process = QProcess()
 
-        #self.process.readyRead.connect(self.on_process_readyRead)
-        #self.process.setProcessChannelMode(QProcess.MergedChannels)
+        # self.process.readyRead.connect(self.on_process_readyRead)
+        # self.process.setProcessChannelMode(QProcess.MergedChannels)
 
         self.process.readyReadStandardOutput.connect(self.on_process_readyReadStandardOutput)
         self.process.readyReadStandardError.connect(self.on_process_readyReadStandardError)
@@ -144,7 +149,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputTextBrowser.append(line)
 
     def on_process_finished(self):
-        #print("QProcess Finishied!")
+        # print("QProcess Finishied!")
         self.outputTextBrowser.setTextColor(Qt.black)
         self.outputTextBrowser.append('Finished!')
         self.tune_output()
@@ -277,7 +282,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         if platform.system() == 'Linux':
             prog = '/usr/bin/gnome-text-editor'
         if platform.system() == 'Windows':
-            prog = os.path.join(os.environ['WINDIR'],'write.exe')
+            prog = os.path.join(os.environ['WINDIR'], 'write.exe')
 
         target = os.path.join(self.paths['outputfolder'], 'dmesg_TZ.txt')
         if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
@@ -310,12 +315,13 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     @pyqtSlot()
     def on_decoderPushButton_clicked(self):
-        #print(sys._getframe().f_code.co_name)
+        # print(sys._getframe().f_code.co_name)
         if self.decoderDlg is None:
             self.decoderDlg = DecoderDlg()
         self.decoderDlg.show()
         self.decoderDlg.raise_()
         self.decoderDlg.activateWindow()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
