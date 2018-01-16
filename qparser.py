@@ -28,7 +28,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
     def set_default_paths(self):
         self.paths = {}
-        for path in ['python', 'parserfolder', 'toolsfolder', 'gdb', 'nm', 'objdump', 'dumpfolder', 'vmlinux',
+        for path in ['python', 'parserfolder', 'toolsfolder', 'gdb', 'nm', 'objdump', 'casefolder', 'caseno', 'dumpfolder', 'vmlinux',
                      'outputfolder']:
             self.paths[path] = ''
 
@@ -75,11 +75,13 @@ class QParser(QMainWindow, Ui_MainWindow):
 
         settings = QSettings()
         for k, v in self.paths.items():
+            #print("loading {}:{}".format(k,v))
             self.paths[k] = settings.value(k) or v
 
     def save_paths(self):
         settings = QSettings()
         for k, v in self.paths.items():
+            #print("saving {}:{}".format(k,v))
             settings.setValue(k, v)
 
     def closeEvent(self, *args, **kwargs):
@@ -93,6 +95,8 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.pythonLineEdit.setText(self.paths['python'])
         self.parserfolderLineEdit.setText(self.paths['parserfolder'])
         self.toolsfolderLineEdit.setText(self.paths['toolsfolder'])
+        self.casefolderLineEdit.setText(self.paths['casefolder'])
+        self.casenoLineEdit.setText(self.paths['caseno'])
         self.dumpfolderLineEdit.setText(self.paths['dumpfolder'])
         self.vmlinuxLineEdit.setText(self.paths['vmlinux'])
         self.outputfolderLineEdit.setText(self.paths['outputfolder'])
@@ -149,7 +153,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.outputTextBrowser.append(line)
 
     def on_process_finished(self):
-        # print("QProcess Finishied!")
+        #print("QProcess Finishied!")
         self.outputTextBrowser.setTextColor(Qt.black)
         self.outputTextBrowser.append('Finished!')
         self.tune_output()
@@ -169,7 +173,7 @@ class QParser(QMainWindow, Ui_MainWindow):
                         if 'PRINTER=' in line: continue
                         f.write(line)
             except Exception as e:
-                print(str(e))
+                #print(str(e))
                 QMessageBox.warning(self, "Open file error", str(e))
 
         if platform.system() == 'Windows':
@@ -182,8 +186,34 @@ class QParser(QMainWindow, Ui_MainWindow):
                             line = 'TMP=' + os.environ['TEMP'] + '\n'
                         f.write(line)
             except Exception as e:
-                print(str(e))
+                #print(str(e))
                 QMessageBox.warning(self, "Open file error", str(e))
+
+    def find_folder(self, root='', target=''):
+        if not os.path.exists(root): return None
+
+        subfolders = []
+        for entry in os.scandir(root): # get all subfolders of current root folder
+            if entry.is_dir():
+                subfolders.append(entry.name)
+
+        if not subfolders: # no any subfolders under current root
+            return None
+
+        for folder in subfolders: # find in current root
+            if folder == target:
+                return os.path.join(root, folder) # return full path of target
+
+            path = self.find_folder(os.path.join(root, folder), target)
+            if path: # found in this subfolder
+                return path
+            else:
+                continue
+
+        # not found in under any of subfolders
+        return None
+
+
 
     @pyqtSlot(str)
     def on_pythonLineEdit_textChanged(self, text):
@@ -216,6 +246,36 @@ class QParser(QMainWindow, Ui_MainWindow):
         path = self.get_folder_path(self.toolsfolderLineEdit.text())
         if path:
             self.toolsfolderLineEdit.setText(path)
+
+    @pyqtSlot(str)
+    def on_casefolderLineEdit_textChanged(self, text):
+        self.paths['casefolder'] = text
+
+    @pyqtSlot()
+    def on_casefolderPushButton_clicked(self):
+        path = self.get_folder_path(self.parserfolderLineEdit.text())
+        if path:
+            self.casefolderLineEdit.setText(path)
+
+    @pyqtSlot(str)
+    def on_casenoLineEdit_textChanged(self, text):
+        self.paths['caseno'] = text
+
+    @pyqtSlot()
+    def on_casenoLineEdit_returnPressed(self):
+        self.findcasePushButton.clicked.emit()
+
+    @pyqtSlot()
+    def on_findcasePushButton_clicked(self):
+        casefolder = self.paths['casefolder']
+        caseno = self.casenoLineEdit.text()
+        path = self.find_folder(casefolder, caseno)
+        if path:
+            #print("find case {} in {}".format(caseno, path))
+            self.dumpfolderLineEdit.setText(path)
+        else:
+            QMessageBox.warning(self, "Find case folder", "Not found case folder of " + caseno)
+
 
     @pyqtSlot(str)
     def on_dumpfolderLineEdit_textChanged(self, text):
@@ -310,7 +370,7 @@ class QParser(QMainWindow, Ui_MainWindow):
 
         target = self.paths['outputfolder']
         if os.access(prog, os.F_OK) and os.access(target, os.F_OK):
-            print(' '.join([prog, target]))
+            #print(' '.join([prog, target]))
             os.system(' '.join([prog, target]))
 
     @pyqtSlot()
