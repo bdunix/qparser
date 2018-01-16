@@ -24,6 +24,7 @@ class QParser(QMainWindow, Ui_MainWindow):
         self.restoreGeometry(settings.value("MainWindow/Geometry", QByteArray()))
         self.restoreState(settings.value("MainWindow/State", QByteArray()))
 
+        self.casenoLineEdit.setValidator(QIntValidator(0, 99999999, self))
         self.decoderDlg = None
 
     def set_default_paths(self):
@@ -36,16 +37,17 @@ class QParser(QMainWindow, Ui_MainWindow):
             self.paths['python'] = '/usr/bin/python2'
             self.paths['parserfolder'] = '/opt/tools/linux-ramdump-parser-v2'
             self.paths['toolsfolder'] = '/usr/bin'
-            self.paths['dumpfolder'] = os.path.join(os.environ['HOME'], 'case')
+            self.paths['casefolder'] = os.path.join(os.environ['HOME'], 'case')
 
         if platform.system() == 'Windows':
             self.paths['python'] = 'C:\Python27\python.exe'
             self.paths['parserfolder'] = 'C:\\work\\tools\\linux-ramdump-parser-v2'
             self.paths['toolsfolder'] = 'C:\\work\\aarch64-elf'
-            self.paths['dumpfolder'] = os.path.join(os.environ['USERPROFILE'], 'case')
+            self.paths['casefolder'] = os.path.join(os.environ['USERPROFILE'], 'case')
 
         self.update_toolspath()
-
+        
+        self.paths['dumpfolder'] = self.paths['casefolder']
         self.paths['vmlinux'] = os.path.join(self.paths['dumpfolder'], "vmlinux")
         self.paths['outputfolder'] = os.path.join(self.paths['dumpfolder'], "parser")
 
