@@ -18,8 +18,9 @@ class DecoderDlg(QDialog, Ui_decoderDlg):
     @pyqtSlot()
     def on_panicregPushButton_clicked(self):
         input = self.inputTextEdit.toPlainText()
-        input = input.replace('pstate', 'cpsr')
-        input = input.replace('lr', 'x30')
+
+        xlate = {'pstate':'cpsr', 'lr':'x30'}
+        input = re.sub("|".join(map(re.escape, xlate)), lambda m: xlate[m.group(0)], input)
 
         regnames = ['pc', 'cpsr', 'sp']
         result = []
